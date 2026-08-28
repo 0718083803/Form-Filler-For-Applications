@@ -1,0 +1,180 @@
+</head>
+<body>
+    <div id="app">
+        <h2>School Form Filler</h2>
+
+        <div class = "section">
+            <h3>My Info</h3>
+            <label>Full Name: <input type = "text" id = "full_name" placeholder = "John Doe"></label>
+            <label>Email: <input type = "email" id = "email" placeholder = "john@example.com"></label>
+            <label>Phone: <input type = "text" id = "phone" placeholder = "+1234567890"></label>
+            <label>Address: <input type = "text" id = "address" placeholder = "123 Main St, City, Country"></label>
+            <label>School Name: <input type = "text" id = "school_name" placeholder = "My School"></label>
+            <button id = "save_btn>">Save info</button>
+            <span id = "save_status"></span>
+        </div>
+
+        <!-- Actions Buttons  -->
+        <div class = "section">
+            <h3>Actions</h3>
+            <button id = "fill_form_btn">Fill Form</button>
+            <button id = "preview_btn">Preview Fill</button>
+            <button id = "clear_btn">Clear Info</button>
+        </div>
+
+        <!-- Preview Section -->
+        <div class = "section" id = "preview_section" style = "display: none;">
+            <h3>About to fill</h3>
+            <div id = "preview_content"></div>
+            <button id = "confirm_button">Confirm</button>
+            <button id = "cancel_button">Cancel</button>
+        </div>
+
+        <div id="Status"></div>
+    </div>
+
+    <!-- ===== ALL PYTHON CODE BELOW ===== -->
+    <script type = "py">
+        from pyscript import document
+        from js import console,alert,window,document as js_document
+
+        #-----------------Data Management-----------------
+        def save_data():
+             data = {
+                'full_name': document.querySelector('#full_name').value,
+                'email': document.querySelector('#email').value,
+                'phone': document.querySelector('#phone').value,
+                'address': document.querySelector('#address').value,
+                'school_name': document.querySelector('#school_name').value
+            }
+            from js import chrome
+            chrome.storage.local.set(data,lamda:None)
+            status = document.querySelector('#save_status')
+            status.textContent = "Info saved!"
+            status.style.color = "green"
+            console.log("Data saved:", data)
+        
+        def load_data():
+            from js import chromw
+            def on_loaded(items):
+                if items:
+                    document.querySelector("#full_name").value = items.get("full_name", "")
+                    document.querySelector("#email").value = items.get("email", "")
+                    document.querySelector("#phone").value = items.get("phone", "")
+                    document.querySelector("#address").value = items.get("address", "")
+                    document.querySelector("#school_name").value = items.get("school_name", "")
+            chrome.storage.local.get(None, on_loaded)
+        
+        #-------Form filling Core----------------
+        def find_form_fields():
+            doc = js_document
+            fields = {}
+            inputs = doc.querySelectorAll("input, textarea, select")
+            for inp in inputs:
+                name = inp.getAttribute("name") or ""
+                id_attr = inp.id or ""
+                placeholder = inp.getAttribute("placeholder") or ""
+                label = ""
+                if inp.id:
+                    label_elem = doc.querySelector(f"label[for = "{inp.id}]")
+                    if label_elem:
+                        label = label_elem.textContent.strip()
+                    if name or id_attr or placeholder or label:
+                        fields[inp] = {
+                            "name": name.lower(),
+                            "id": id_attr.lower(),
+                            "placeholder": placeholder.lower(),
+                            "label": label.lower()
+                            "element": inp
+                        }
+                    return fields
+                
+                def match_field(field_info, data):
+                    text = f"{field_info['name']} {field_info['id']} field_info['placeholder']} {field_info['label']}"
+                    matches = {
+                        'name':['name','fullname',"full name"],
+                        'email':['email','e-mail'],
+                        'phone':['phone','phone number'],
+                        'address':['address'],
+                        'school_name':['school name','school']
+                        
+                    }
+                    for key,keywords in matches.items():
+                    for kw in keywords:
+                        if kw in text:
+                            return key, user_data.get(key,"")
+                    return None,None 
+                def fill_form(preview_mode = False):
+                     doc = js_document
+                     from js import chrome
+                     def on_data_loaded(items):
+                         if not items:
+                             status = document.querySelector("#status")
+                             status.textContent = "Pleade save your info firs!"
+                             status.style.color = "orange"
+                             return
+                        if not fields:
+                            status = document.querySelector("#status")
+                            status.textContent = "No form fields found!"
+                            status.style.color = "orange"
+                            return
+                        fill_data = {}
+                        for element,info in fields.items()
+                            key,value = match_field(info, items)
+                            if key and value:
+                                fill_data[element] = value
+                        if not fill_data:
+                                status = document.querySelector("#status")
+                                status.textContent = "No matching fields found!"
+                                status.style.color = "orange"
+                                return
+                        if preview_mode:
+                            short_preview(fill_data)
+                            return
+                        for element,value in fill_data.items():
+                            element.value = value
+                            element.dispatchEvent(js_document.create("Event","input", {"bubbles": True}))
+                            element.dispatchEvent(js_document.create("Event","change", {"bubbles": True}))
+                        status = document.querySelector("#status")
+                        status.textContent = "Form filled!"
+                        status.style.color = "green"
+                        console.log("Form filled with data:", fill_data)
+                     chrome.storage.local.get(None, on_data_loaded)
+                def show_preview(fill_data):
+                    preview_section = document.querySelector('#preview_sections')
+                    preview_section.style.display = "block"
+                    content = document.querySelector('#preview_content')
+                    content.innerHTML = ""
+                    for element,value in fill_data.items():
+                        name = element.getAttribute("name") or element.id or element.getAttribute("placeholder") or "Unknown Field"
+                        div = js_document.createElement("div")
+                        div.className = "preview_item"
+                        div.textContent = f"{name}: {value}"
+                        content.appendChild(div)
+                def confirm_fill():
+                    fill_data = window._preview_data
+                    if not fill_data:
+                        return
+                    for element,value in fill_data.items():
+                        element.value = value
+                        element.dispatchEvent(js_document.create("Event","input", {"bubbles": True}))
+                        element.dispatchEvent(js_document.create("Event","change", {"bubbles": True}))
+                    document.querySelector('#preview_section').style.display = "none"
+                    status = document.querySelector("#status")
+                    status.textContent = f"Filled {len(fill_data)} fields""
+                    status.style.color = "green"
+                    window._preview_data = None
+
+                #-------------Bind Events-----------------
+                document.querySelector('#save_btn').addEventListener ("click", lambda e:save_data())
+                document.querySelector('#fill_form_btn').addEventListener("click", lambda e: fill_form(preview_mode = False))
+                document.querySelector('#preview_btn').addEventListener("click", lambda e: fill_form(preview_mode = True))
+                document.querySelector('#confirm_button').addEventListener("click", lambda e: confirm_fill())
+                document.querySelector('#cancel_button').addEventListener("click", lambda e: cancel_preview())
+
+                load_data()
+                console.log("School Form Filler initialized.")
+                
+    </script>
+</body>
+</html>
